@@ -1,5 +1,6 @@
 Cahier des charges détaillé - Assistant IA Email Outlook
 🎯 Objectif du projet
+
 Développer un Add-in Outlook avec assistant IA pour générer des réponses automatiques basées sur une base de connaissances (RAG), en utilisant uniquement des solutions open-source et gratuites.
 
 🏗️ Architecture technique (100% gratuite)
