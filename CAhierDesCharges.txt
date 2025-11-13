@@ -1,0 +1,766 @@
+Cahier des charges détaillé - Assistant IA Email Outlook
+🎯 Objectif du projet
+Développer un Add-in Outlook avec assistant IA pour générer des réponses automatiques basées sur une base de connaissances (RAG), en utilisant uniquement des solutions open-source et gratuites.
+
+🏗️ Architecture technique (100% gratuite)
+┌─────────────────────────────────────────────────────────────┐
+│                    OUTLOOK ADD-IN (Frontend)                │
+│  Technologies: HTML5, CSS3, Vanilla JavaScript, Office.js   │
+│  - Bouton dans le ruban Outlook                             │
+│  - Panneau latéral (Task Pane)                              │
+│  - Interface de validation/modification                      │
+└─────────────────────────────────────────────────────────────┘
+                              ↓ HTTPS
+┌─────────────────────────────────────────────────────────────┐
+│              BACKEND API (Serveur entreprise)               │
+│  Technologies: Node.js + Express                            │
+│  Port: 3000 (interne) ou via reverse proxy Nginx           │
+│                                                             │
+│  Endpoints:                                                 │
+│  POST /api/generate-response    → Génère réponse IA        │
+│  POST /api/add-document         → Ajoute doc à la base     │
+│  GET  /api/health               → Check santé serveur      │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    OLLAMA (LLM local)                       │
+│  Modèle: llama3.2:3b (léger) ou mistral:7b                 │
+│  Port: 11434                                                │
+│  Mémoire requise: 8GB RAM minimum                           │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│              RAG - Base de connaissances                    │
+│  Vector DB: Qdrant (gratuit, self-hosted)                  │
+│  Embeddings: sentence-transformers (all-MiniLM-L6-v2)      │
+│  Stockage: PostgreSQL + pgvector (ou SQLite pour test)     │
+└─────────────────────────────────────────────────────────────┘
+
+📦 Stack technique détaillée (Alternatives gratuites)
+ComposantSolution payanteAlternative gratuiteJustificationLLMClaude API ($)Ollama + Llama 3.2Self-hosted, aucun coûtVector DBPinecone ($)QdrantOpen-source, self-hostedEmbeddingsOpenAI ($)all-MiniLM-L6-v2Gratuit, performantHosting APIAzure ($)Serveur entrepriseInfrastructure existanteDatabaseMongoDB Atlas ($)PostgreSQL + pgvectorOpen-source, robusteReverse Proxy-NginxGratuit, standard industrie
+
+📝 Spécifications fonctionnelles
+1. Fonctionnalités principales
+✅ Phase 1 : MVP (Minimum Viable Product)
+
+F1.1 : Bouton "🤖 Réponse IA" dans le ruban Outlook
+F1.2 : Récupération automatique du contenu de l'email (expéditeur, sujet, corps)
+F1.3 : Analyse de l'intention de l'email (question, réclamation, demande d'info)
+F1.4 : Recherche dans la base de connaissances (RAG)
+F1.5 : Génération d'une réponse avec Ollama (Llama 3.2)
+F1.6 : Affichage de la réponse avec score de confiance
+F1.7 : Boutons : [Modifier] [Utiliser] [Régénérer]
+F1.8 : Insertion de la réponse dans l'éditeur Outlook
+
+🚀 Phase 2 : Améliorations (optionnel)
+
+F2.1 : Historique des réponses générées
+F2.2 : Feedback utilisateur (👍👎) pour améliorer le modèle
+F2.3 : Suggestions de pièces jointes basées sur le contexte
+F2.4 : Mode "Brouillon automatique" (génération en arrière-plan)
+
+
+🛠️ Instructions détaillées pour Claude Code Sonnet 4.5
+
+📦 PARTIE 1 : INSTALLATION DES DÉPENDANCES (Serveur entreprise)
+Prompt pour Claude Code :
+Je vais créer un assistant IA pour Outlook. Voici les étapes d'installation sur un serveur Linux (Ubuntu 22.04).
+
+TÂCHE 1 : Crée un script bash "install-server.sh" qui :
+
+1. Installe Node.js 20 LTS
+2. Installe PostgreSQL 15 avec l'extension pgvector
+3. Installe Ollama
+4. Télécharge le modèle Llama 3.2 (3B)
+5. Installe Qdrant via Docker
+6. Installe Nginx
+7. Crée les répertoires nécessaires :
+   - /opt/outlook-ai-assistant/backend
+   - /opt/outlook-ai-assistant/data/knowledge-base
+   - /opt/outlook-ai-assistant/logs
+
+Ajoute des messages de progression et gère les erreurs.
+Le script doit être exécutable avec : sudo bash install-server.sh
+Fichier attendu : install-server.sh
+
+📦 PARTIE 2 : BACKEND API (Node.js)
+Prompt pour Claude Code :
+TÂCHE 2 : Crée un backend Node.js professionnel pour l'assistant IA email.
+
+STRUCTURE DU PROJET :
+outlook-ai-backend/
+├── src/
+│   ├── server.js                    # Point d'entrée
+│   ├── config/
+│   │   ├── database.js              # Config PostgreSQL
+│   │   ├── ollama.js                # Config Ollama
+│   │   └── qdrant.js                # Config Qdrant
+│   ├── routes/
+│   │   ├── email.routes.js          # Routes emails
+│   │   └── knowledge.routes.js      # Routes gestion docs
+│   ├── controllers/
+│   │   ├── email.controller.js      # Logique emails
+│   │   └── knowledge.controller.js  # Logique RAG
+│   ├── services/
+│   │   ├── rag.service.js           # Service RAG
+│   │   ├── llm.service.js           # Service Ollama
+│   │   ├── embedding.service.js     # Génération embeddings
+│   │   └── email-parser.service.js  # Analyse emails
+│   ├── models/
+│   │   ├── email.model.js           # Modèle email
+│   │   └── document.model.js        # Modèle document
+│   ├── utils/
+│   │   ├── logger.js                # Logs Winston
+│   │   ├── validation.js            # Validation Joi
+│   │   └── errors.js                # Gestion erreurs
+│   └── middleware/
+│       ├── auth.middleware.js       # Authentification
+│       ├── cors.middleware.js       # CORS
+│       └── rate-limit.middleware.js # Rate limiting
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── .env.example
+├── .gitignore
+├── package.json
+├── README.md
+└── ecosystem.config.js              # Config PM2
+
+DÉPENDANCES :
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "pgvector": "^0.1.5",
+    "ollama": "^0.5.0",
+    "@qdrant/js-client-rest": "^1.8.0",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.6.0",
+    "@xenova/transformers": "^2.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  }
+}
+
+SPÉCIFICATIONS DÉTAILLÉES :
+
+1. server.js :
+   - Écoute sur le port 3000
+   - Middleware : helmet, cors, rate-limit, express.json
+   - Gestion globale des erreurs
+   - Graceful shutdown
+
+2. email.controller.js :
+   Endpoint : POST /api/generate-response
+   Input : { subject: string, body: string, from: string }
+   Processus :
+   a) Parser l'email (extraire intention, entités)
+   b) Générer embedding du contexte
+   c) Rechercher dans Qdrant (top 5 résultats)
+   d) Construire le prompt avec contexte RAG
+   e) Appeler Ollama pour générer la réponse
+   f) Calculer score de confiance (0-100)
+   Output : {
+     response: string,
+     confidence: number,
+     sources: [{ title: string, excerpt: string }],
+     intention: string,
+     processingTime: number
+   }
+
+3. rag.service.js :
+   - searchSimilarDocuments(query, topK=5)
+   - addDocument(content, metadata)
+   - Chunking : 500 tokens avec overlap de 50
+
+4. llm.service.js :
+   - generateResponse(prompt, context)
+   - Paramètres Ollama : temperature=0.7, max_tokens=500
+   - Système de retry (3 tentatives)
+
+5. embedding.service.js :
+   - Utilise @xenova/transformers avec "Xenova/all-MiniLM-L6-v2"
+   - generateEmbedding(text) → float32 array (384 dimensions)
+
+6. Gestion des erreurs :
+   - Créer des classes d'erreur custom : ValidationError, OllamaError, QdrantError
+   - Middleware de gestion d'erreur global
+   - Logs détaillés avec Winston (console + fichier)
+
+7. .env.example :
+PORT=3000
+NODE_ENV=development
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=outlook_ai
+POSTGRES_USER=outlook_user
+POSTGRES_PASSWORD=changeme
+QDRANT_URL=http://localhost:6333
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2:3b
+LOG_LEVEL=info
+MAX_CHUNK_SIZE=500
+OVERLAP_SIZE=50
+
+Génère tous les fichiers avec du code production-ready :
+- Gestion d'erreurs complète
+- Validation des inputs
+- Logs détaillés
+- Commentaires clairs
+- Types JSDoc
+Fichiers attendus : Toute la structure backend complète
+
+📦 PARTIE 3 : SYSTÈME RAG (Indexation des documents)
+Prompt pour Claude Code :
+TÂCHE 3 : Crée un script d'indexation des documents pour la base de connaissances.
+
+FICHIER : src/scripts/index-documents.js
+
+Ce script doit :
+
+1. Lire tous les fichiers du dossier /opt/outlook-ai-assistant/data/knowledge-base/
+   Formats supportés : PDF, DOCX, TXT, MD
+
+2. Pour chaque document :
+   a) Extraire le texte (pdf-parse pour PDF, mammoth pour DOCX)
+   b) Nettoyer le texte (enlever caractères spéciaux, espaces multiples)
+   c) Découper en chunks de 500 tokens avec overlap de 50 tokens
+   d) Générer les embeddings avec sentence-transformers
+   e) Stocker dans Qdrant avec metadata : {
+        title: nom_fichier,
+        source: chemin_fichier,
+        chunk_index: numéro,
+        total_chunks: total,
+        indexed_at: timestamp
+      }
+   f) Sauvegarder référence dans PostgreSQL
+
+3. Afficher progression :
+   - Nombre de documents traités
+   - Nombre de chunks créés
+   - Temps d'exécution
+
+4. Gestion d'erreurs :
+   - Continuer si un fichier échoue (log l'erreur)
+   - Rollback si Qdrant ou PostgreSQL échoue
+
+Utilisation : node src/scripts/index-documents.js
+
+Ajoute aussi un script src/scripts/clear-index.js pour vider la base.
+Fichiers attendus :
+
+src/scripts/index-documents.js
+src/scripts/clear-index.js
+
+
+📦 PARTIE 4 : OUTLOOK ADD-IN (Frontend)
+Prompt pour Claude Code :
+TÂCHE 4 : Crée l'Add-in Outlook complet.
+
+INITIALISATION :
+npm install -g yo generator-office
+yo office
+
+Choix :
+- Project type: Outlook Task Pane Add-in
+- Script type: JavaScript
+- Name: AI Email Assistant
+
+STRUCTURE COMPLÈTE :
+outlook-ai-addin/
+├── src/
+│   ├── taskpane/
+│   │   ├── taskpane.html
+│   │   ├── taskpane.css
+│   │   ├── taskpane.js
+│   │   └── components/
+│   │       ├── loading.js
+│   │       ├── response-display.js
+│   │       └── error-display.js
+│   ├── commands/
+│   │   ├── commands.html
+│   │   └── commands.js
+│   └── services/
+│       ├── api.service.js        # Communication avec backend
+│       ├── outlook.service.js    # Interactions Office.js
+│       └── storage.service.js    # LocalStorage
+├── assets/
+│   ├── icon-16.png
+│   ├── icon-32.png
+│   ├── icon-80.png
+│   └── logo.png
+├── manifest.xml
+├── webpack.config.js
+└── package.json
+
+SPÉCIFICATIONS DÉTAILLÉES :
+
+1. taskpane.html :
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant IA Email</title>
+    <link rel="stylesheet" href="taskpane.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <img src="../../assets/logo.png" alt="Logo" class="logo">
+            <h1>🤖 Assistant IA</h1>
+        </header>
+
+        <!-- Email Info -->
+        <section id="emailInfo" class="email-info hidden">
+            <div class="info-row">
+                <span class="label">De:</span>
+                <span id="emailFrom"></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Sujet:</span>
+                <span id="emailSubject"></span>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <section id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p id="loadingText">Analyse en cours...</p>
+            <div class="progress-steps">
+                <div class="step" id="step1">📧 Lecture email</div>
+                <div class="step" id="step2">🔍 Recherche contexte</div>
+                <div class="step" id="step3">🤖 Génération réponse</div>
+            </div>
+        </section>
+
+        <!-- Error State -->
+        <section id="error" class="error hidden">
+            <div class="error-icon">⚠️</div>
+            <h3>Erreur</h3>
+            <p id="errorMessage"></p>
+            <button id="retryBtn" class="btn btn-secondary">Réessayer</button>
+        </section>
+
+        <!-- Result State -->
+        <section id="result" class="result hidden">
+            <!-- Intention détectée -->
+            <div class="intention-badge">
+                <span class="badge" id="intentionBadge"></span>
+            </div>
+
+            <!-- Score de confiance -->
+            <div class="confidence-bar">
+                <label>Confiance:</label>
+                <div class="bar">
+                    <div class="fill" id="confidenceFill"></div>
+                </div>
+                <span id="confidenceText">0%</span>
+            </div>
+
+            <!-- Réponse générée -->
+            <div class="response-container">
+                <label>Réponse suggérée:</label>
+                <textarea 
+                    id="responseText" 
+                    rows="12"
+                    placeholder="La réponse générée apparaîtra ici..."
+                ></textarea>
+                <div class="char-count">
+                    <span id="charCount">0</span> caractères
+                </div>
+            </div>
+
+            <!-- Sources -->
+            <div class="sources-container">
+                <details>
+                    <summary>📚 Sources utilisées (<span id="sourceCount">0</span>)</summary>
+                    <ul id="sourcesList" class="sources-list"></ul>
+                </details>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button id="regenerateBtn" class="btn btn-secondary">
+                    🔄 Régénérer
+                </button>
+                <button id="copyBtn" class="btn btn-secondary">
+                    📋 Copier
+                </button>
+                <button id="insertBtn" class="btn btn-primary">
+                    📤 Utiliser cette réponse
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <small>⏱️ Généré en <span id="processingTime">0</span>s</small>
+            </div>
+        </section>
+
+        <!-- Main Action -->
+        <div class="main-action">
+            <button id="generateBtn" class="btn btn-primary btn-large">
+                ✨ Générer une réponse IA
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <small>Propulsé par Llama 3.2 🦙</small>
+        </footer>
+    </div>
+
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="taskpane.js"></script>
+</body>
+</html>
+
+2. taskpane.css :
+Design moderne avec :
+- Variables CSS pour les couleurs
+- Dark mode support
+- Animations fluides
+- Responsive design
+- États : default, loading, success, error
+Palette de couleurs :
+--primary: #0078d4 (bleu Microsoft)
+--success: #10b981
+--warning: #f59e0b
+--error: #ef4444
+--background: #ffffff
+--surface: #f5f5f5
+--text-primary: #1f2937
+--text-secondary: #6b7280
+
+3. taskpane.js :
+Créer une classe AIEmailAssistant avec :
+
+class AIEmailAssistant {
+    constructor() {
+        this.apiUrl = 'http://YOUR_SERVER_IP:3000/api';
+        this.currentEmail = null;
+        this.generatedResponse = null;
+        this.init();
+    }
+
+    init() {
+        Office.onReady((info) => {
+            if (info.host === Office.HostType.Outlook) {
+                this.setupEventListeners();
+                this.loadEmailInfo();
+            }
+        });
+    }
+
+    setupEventListeners() {
+        // Bouton génération
+        // Bouton insertion
+        // Bouton copie
+        // Bouton régénération
+    }
+
+    async loadEmailInfo() {
+        // Récupérer from, subject, body avec Office.js
+    }
+
+    async generateResponse() {
+        // Appeler API backend
+        // Gérer les états : loading, success, error
+        // Animer les étapes de progression
+    }
+
+    async insertResponse() {
+        // Insérer dans l'éditeur Outlook
+        // Office.context.mailbox.item.body.setAsync()
+    }
+
+    showLoading(step) {
+        // Animer les étapes
+    }
+
+    showResult(data) {
+        // Afficher résultat
+    }
+
+    showError(message) {
+        // Afficher erreur
+    }
+}
+
+// Initialisation
+const assistant = new AIEmailAssistant();
+
+4. manifest.xml :
+Configure :
+- Version: 1.0.0
+- Display name: "Assistant IA Email"
+- Description
+- Permissions: ReadWriteItem, ReadWriteMailbox
+- Bouton dans le ruban : "Réponse IA"
+- Icônes (16x16, 32x32, 80x80)
+- URL du taskpane (pour test local : https://localhost:3000)
+
+5. services/api.service.js :
+class APIService {
+    async generateResponse(email) {
+        const response = await fetch(`${API_URL}/generate-response`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(email)
+        });
+        
+        if (!response.ok) throw new Error('API Error');
+        return await response.json();
+    }
+}
+
+6. services/outlook.service.js :
+class OutlookService {
+    getEmailContent() {
+        return new Promise((resolve) => {
+            Office.context.mailbox.item.from.getAsync((result) => {
+                const from = result.value.emailAddress;
+                // ... récupérer subject et body
+                resolve({ from, subject, body });
+            });
+        });
+    }
+
+    insertResponse(text) {
+        Office.context.mailbox.item.displayReplyForm({
+            htmlBody: text
+        });
+    }
+}
+
+Génère tous les fichiers avec :
+- Code propre et commenté
+- Gestion d'erreurs complète
+- UX fluide avec animations
+- Design moderne et professionnel
+Fichiers attendus : Toute la structure Add-in complète
+
+📦 PARTIE 5 : CONFIGURATION NGINX (Reverse Proxy)
+Prompt pour Claude Code :
+TÂCHE 5 : Crée la configuration Nginx pour exposer le backend de manière sécurisée.
+
+FICHIER : /etc/nginx/sites-available/outlook-ai-assistant
+
+Configuration requise :
+1. Reverse proxy vers localhost:3000
+2. SSL/TLS avec certificat auto-signé (pour test interne)
+3. Rate limiting (100 requêtes/minute par IP)
+4. CORS configuré pour Outlook Add-in
+5. Logs détaillés
+6. Compression gzip
+7. Headers de sécurité (X-Frame-Options, CSP, etc.)
+
+Domaine : ai-assistant.votre-entreprise.local (à adapter)
+
+Ajoute aussi un script nginx-setup.sh pour :
+- Créer le certificat SSL auto-signé
+- Activer la configuration
+- Redémarrer Nginx
+Fichiers attendus :
+
+Configuration Nginx
+Script nginx-setup.sh
+
+
+📦 PARTIE 6 : SCRIPTS DE DÉPLOIEMENT ET GESTION
+Prompt pour Claude Code :
+TÂCHE 6 : Crée les scripts de gestion du serveur.
+
+1. deploy.sh :
+   - Arrêter le serveur existant
+   - Faire un backup de la base de données
+   - Copier les nouveaux fichiers
+   - Installer les dépendances (npm install)
+   - Redémarrer avec PM2
+   - Vérifier que le service tourne
+
+2. backup.sh :
+   - Backup PostgreSQL (dump)
+   - Backup Qdrant (snapshots)
+   - Backup des documents (/data/knowledge-base)
+   - Archiver avec timestamp
+   - Garder les 30 derniers backups
+
+3. health-check.sh :
+   - Vérifier que Ollama répond (curl localhost:11434)
+   - Vérifier que Qdrant répond (curl localhost:6333)
+   - Vérifier que PostgreSQL répond (psql)
+   - Vérifier que le backend répond (curl localhost:3000/api/health)
+   - Afficher un rapport
+
+4. logs-viewer.sh :
+   - Menu interactif pour voir :
+     a) Logs backend (PM2)
+     b) Logs Nginx
+     c) Logs PostgreSQL
+     d) Logs Ollama
+
+5. ecosystem.config.js (PM2) :
+module.exports = {
+  apps: [{
+    name: 'outlook-ai-backend',
+    script: './src/server.js',
+    instances: 2,
+    exec_mode: 'cluster',
+    env: {
+      NODE_ENV: 'production'
+    },
+    error_file: '/opt/outlook-ai-assistant/logs/error.log',
+    out_file: '/opt/outlook-ai-assistant/logs/out.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    merge_logs: true,
+    max_memory_restart: '1G',
+    autorestart: true
+  }]
+};
+
+Tous les scripts doivent être dans /opt/outlook-ai-assistant/scripts/
+Fichiers attendus :
+
+deploy.sh
+backup.sh
+health-check.sh
+logs-viewer.sh
+ecosystem.config.js
+
+
+📦 PARTIE 7 : TESTS ET DOCUMENTATION
+Prompt pour Claude Code :
+TÂCHE 7 : Crée les tests et la documentation.
+
+1. Tests unitaires (Jest) :
+   tests/unit/services/rag.service.test.js
+   tests/unit/services/llm.service.test.js
+   tests/unit/services/embedding.service.test.js
+   
+   Pour chaque service :
+   - Tester les fonctions principales
+   - Mocker les dépendances externes (Ollama, Qdrant)
+   - Vérifier la gestion d'erreurs
+
+2. Tests d'intégration :
+   tests/integration/email.routes.test.js
+   
+   Tester l'endpoint complet avec Supertest :
+   - POST /api/generate-response avec un email valide
+   - Vérifier le format de la réponse
+   - Tester les cas d'erreur
+
+3. README.md complet :
+   - Description du projet
+   - Architecture
+   - Prérequis
+   - Installation pas à pas
+   - Configuration
+   - Utilisation
+   - FAQ
+   - Troubleshooting
+   - License
+
+4. docs/API.md :
+   Documentation complète de l'API :
+   - Liste des endpoints
+   - Paramètres d'entrée
+   - Exemples de réponses
+   - Codes d'erreur
+
+5. docs/DEPLOYMENT.md :
+   Guide de déploiement en production :
+   - Configuration serveur
+   - Installation des dépendances
+   - Sécurité
+   - Monitoring
+   - Mise à jour
+
+6. docs/ADD-IN-INSTALLATION.md :
+   Guide d'installation de l'Add-in :
+   - Sideloading dans Outlook Desktop
+   - Sideloading dans Outlook Web
+   - Déploiement organisationnel
+
+Génère des docs claires avec des exemples concrets.
+Fichiers attendus :
+
+Tests complets
+Documentation complète
+
+
+📦 PARTIE 8 : SCRIPT D'INSTALLATION TOUT-EN-UN
+Prompt pour Claude Code :
+TÂCHE 8 : Crée un script d'installation automatique complet.
+
+FICHIER : quick-install.sh
+
+Ce script doit permettre une installation en une seule commande :
+sudo bash quick-install.sh
+
+Étapes :
+1. Afficher un banner ASCII art "Outlook AI Assistant"
+2. Vérifier les prérequis système (Ubuntu 22.04, 16GB RAM, 50GB disque)
+3. Demander confirmation à l'utilisateur
+4. Installer toutes les dépendances (voir TÂCHE 1)
+5. Cloner ou créer la structure de projet
+6. Configurer les fichiers .env (demander interactivement les valeurs)
+7. Initialiser PostgreSQL (créer DB et user)
+8. Démarrer Qdrant
+9. Télécharger le modèle Ollama
+10. Installer les dépendances Node.js
+11. Configurer Nginx
+12. Démarrer le backend avec PM2
+13. Afficher un résumé :
+    - URL du backend
+    - Status des services
+    - Prochaines étapes
+
+Ajouter une barre de progression pour chaque étape.
+Gérer les erreurs et permettre de reprendre en cas d'échec.
+Fichier attendu : quick-install.sh (script ultime)
+
+🚀 PARTIE 9 : MISE EN PRODUCTION
+Guide de déploiement (Instructions manuelles)
+Étape 1 : Préparer le serveur
+bash# Sur le serveur de l'entreprise (SSH)
+cd /opt
+sudo git clone <votre-repo> outlook-ai-assistant
+cd outlook-ai-assistant
+sudo bash quick-install.sh
+Étape 2 : Indexer la base de connaissances
+bash# Copier vos documents
+sudo cp /chemin/vers/documents/*.pdf /opt/outlook-ai-assistant/data/knowledge-base/
+
+# Indexer
+cd /opt/outlook-ai-assistant/backend
+node src/scripts/index-documents.js
+Étape 3 : Vérifier que tout fonctionne
+bashbash /opt/outlook-ai-assistant/scripts/health-check.sh
+```
+
+#### **Étape 4 : Configurer le DNS interne**
+Ajouter dans le DNS de l'entreprise :
+```
+ai-assistant.votre-entreprise.local → IP_DU_SERVEUR
+Étape 5 : Installer l'Add-in sur votre Outlook
+Pour Outlook Desktop :
+
+Ouvrir Outlook
+Aller dans Fichier → Obtenir des compléments
+Cliquer sur Mes compléments
+En bas : **Ajouter un complément personnalisé
+RéessayerCette réponse a été interrompue car Claude a atteint sa longueur maximale de message. Cliquez sur continuer pour permettre à Claude de poursuivre.ContinuerClaude peut faire des erreurs. Assurez-vous de vérifier ses réponses. Sonnet 4.5
