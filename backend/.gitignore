@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Vector store local storage
+chromadb_data/
+vector_store.json
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test
+coverage/
+
+# Temp
+tmp/
+temp/
+
+# Models (Xenova cache)
+.cache/
+models/

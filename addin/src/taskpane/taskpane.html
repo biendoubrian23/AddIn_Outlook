@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Assistant IA Email</title>
+    <link rel="stylesheet" href="taskpane.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <span class="logo-icon">🤖</span>
+                <h1>Assistant IA</h1>
+            </div>
+            <div class="version">v1.0</div>
+        </header>
+
+        <!-- Email Info Section -->
+        <section id="emailInfo" class="email-info hidden">
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="label">De:</span>
+                    <span id="emailFrom" class="value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Sujet:</span>
+                    <span id="emailSubject" class="value"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <section id="loading" class="loading-section hidden">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+            </div>
+            <p id="loadingText" class="loading-text">Analyse en cours...</p>
+            
+            <div class="progress-steps">
+                <div class="step" id="step1">
+                    <span class="step-icon">📧</span>
+                    <span class="step-text">Lecture email</span>
+                </div>
+                <div class="step" id="step2">
+                    <span class="step-icon">🔍</span>
+                    <span class="step-text">Recherche contexte</span>
+                </div>
+                <div class="step" id="step3">
+                    <span class="step-icon">🤖</span>
+                    <span class="step-text">Génération réponse</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error State -->
+        <section id="error" class="error-section hidden">
+            <div class="error-icon">⚠️</div>
+            <h3 class="error-title">Une erreur est survenue</h3>
+            <p id="errorMessage" class="error-message"></p>
+            <button id="retryBtn" class="btn btn-secondary">
+                🔄 Réessayer
+            </button>
+        </section>
+
+        <!-- Result State -->
+        <section id="result" class="result-section hidden">
+            <!-- Intention Badge -->
+            <div class="intention-container">
+                <span class="label">Intention détectée:</span>
+                <span id="intentionBadge" class="intention-badge"></span>
+            </div>
+
+            <!-- Confidence Score -->
+            <div class="confidence-container">
+                <div class="confidence-header">
+                    <span class="label">Confiance:</span>
+                    <span id="confidenceText" class="confidence-value">0%</span>
+                </div>
+                <div class="confidence-bar">
+                    <div id="confidenceFill" class="confidence-fill"></div>
+                </div>
+            </div>
+
+            <!-- Response Textarea -->
+            <div class="response-container">
+                <label class="response-label">Réponse suggérée:</label>
+                <textarea 
+                    id="responseText" 
+                    class="response-textarea"
+                    rows="14"
+                    placeholder="La réponse générée apparaîtra ici..."
+                ></textarea>
+                <div class="char-count">
+                    <span id="charCount">0</span> caractères
+                </div>
+            </div>
+
+            <!-- Sources -->
+            <div class="sources-container">
+                <details class="sources-details">
+                    <summary class="sources-summary">
+                        📚 Sources utilisées (<span id="sourceCount">0</span>)
+                    </summary>
+                    <ul id="sourcesList" class="sources-list"></ul>
+                </details>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <button id="regenerateBtn" class="btn btn-secondary btn-small">
+                    🔄 Régénérer
+                </button>
+                <button id="copyBtn" class="btn btn-secondary btn-small">
+                    📋 Copier
+                </button>
+                <button id="insertBtn" class="btn btn-primary">
+                    📤 Utiliser cette réponse
+                </button>
+            </div>
+
+            <!-- Stats Footer -->
+            <div class="stats">
+                <small>⏱️ Généré en <span id="processingTime">0</span>s</small>
+            </div>
+        </section>
+
+        <!-- Main Generate Button -->
+        <div class="main-action">
+            <button id="generateBtn" class="btn btn-primary btn-large">
+                ✨ Générer une réponse IA
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <small>Propulsé par Llama 3.2 🦙</small>
+        </footer>
+    </div>
+
+    <!-- Office.js -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    
+    <!-- Application Script -->
+    <script src="taskpane.js"></script>
+</body>
+</html>
